@@ -101,7 +101,30 @@ if ($_POST['name'] !== $user['name'] || $_POST['collarNumber'] !== $user['collar
     // Get new rank and unit from POST
     $newRank = isset($_POST['rank']) ? mysqli_real_escape_string($conn, $_POST['rank']) : $user['rank'];
     $newUnit = isset($_POST['unit']) ? mysqli_real_escape_string($conn, $_POST['unit']) : $user['unit'];
-
+        // Check for changes and log them
+        $fields_to_check = ['name', 'collarNumber', 'rank', 'unit'];
+        foreach ($fields_to_check as $field) {
+            if ($_POST[$field] !== $user[$field]) {
+                $sql = "INSERT INTO user_logs (
+                    admin_charid, admin_name, admin_rank, admin_collarNumber, admin_unit,
+                    user_characterId, user_name, user_rank, user_collarNumber, user_unit,
+                    changed_value, previous_value, new_value, change_date
+                ) VALUES (
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?, NOW()
+                )";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param(
+                    'sssssssssssss',
+                    $_SESSION['characterId'], $_SESSION['name'], $_SESSION['rank'], $_SESSION['collarNumber'], $_SESSION['unit'],
+                    $characterId, $user['name'], $user['rank'], $user['collarNumber'], $user['unit'],
+                    $field, $user[$field], $_POST[$field]
+                );
+                $stmt->execute();
+            }
+        }
+    
     // Retrieve and sanitize values for trainings
     $training_cols = ['sub_divisions_npas', 'sub_divisions_dsu', 'sub_divisions_mpo', 'driver_trainings_driving', 'driver_trainings_tacad', 'use_of_force_trainings_psu', 'use_of_force_trainings_firearms', 'additional_trainings_forensics', 'additional_trainings_fim', 'additional_trainings_training_officer', 'additional_trainings_medical'];
     $training_values = [];
