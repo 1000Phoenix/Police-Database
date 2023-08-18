@@ -54,8 +54,22 @@ if (isset($_GET['characterId'])) {
     $characterId = $_GET['characterId'];
     $user = getUserData($conn, $characterId);
 
-    // Check for user permission here...
-    $rankIndex = array_search($_SESSION['rank'], $rankOrder);
+    
+
+$rankIndex = array_search($_SESSION['rank'], $rankOrder);
+$chiefInspectorIndex = array_search('Chief Inspector', $rankOrder);
+
+// Multiple explicit conditional checks
+if ($rankIndex < $chiefInspectorIndex) {
+    $isChiefInspectorOrHigher = true;
+} else if ($rankIndex == $chiefInspectorIndex) {
+    $isChiefInspectorOrHigher = true;
+} else {
+    $isChiefInspectorOrHigher = false;
+}
+
+// Check for user permission here...
+    
     $userRankIndex = array_search($user['rank'], $rankOrder);
 
     // Additional check for user permission
@@ -68,43 +82,21 @@ if (isset($_GET['characterId'])) {
 
 // Handle form submission for editing profile
 if ($_SERVER["REQUEST_METHOD"] == "POST" && $canEdit) {
-    // Check if collarNumber and name form is submitted
-    if (isset($_POST['collarNumber']) && isset($_POST['name'])) {
-        // Update the collarNumber and name in the users table
+    
+if ($_POST['name'] !== $user['name'] || $_POST['collarNumber'] !== $user['collarNumber']) {
+    if (!$isChiefInspectorOrHigher) {
+        echo "You don't have permission to edit collar number and name.";
+        exit();
+    } else {
+        // Continue with the rest of the update logic
         $newCollarNumber = mysqli_real_escape_string($conn, $_POST['collarNumber']);
         $newName = mysqli_real_escape_string($conn, $_POST['name']);
-
-        // Check if the user has permission to edit collar number and name
-        if ($isAccessibleRank) {
-            // Prepare SQL statement to update the collar number and name in the users table
-            $updateCollarNameSql = "UPDATE users SET collarNumber = ?, name = ? WHERE characterId = ?";
-            $stmt = $conn->prepare($updateCollarNameSql);
-
-            if (!$stmt) {
-                echo "Error preparing statement: " . $conn->error;
-                exit();
-            }
-
-            // Bind parameters
-            $stmt->bind_param('sss', $newCollarNumber, $newName, $characterId);
-
-            // Execute the statement
-            if (!$stmt->execute()) {
-                echo "Error executing statement: " . $stmt->error;
-                exit();
-            }
-
-            // Update the user's collar number and name in the $user array after the update.
-            $user['collarNumber'] = $newCollarNumber;
-            $user['name'] = $newName;
-
-            // Close the statement
-            $stmt->close();
-        } else {
-            echo "You don't have permission to edit collar number and name.";
-            exit();
-        }
     }
+} else {
+    // Continue with the rest of the update logic without changing the collar number and name
+    $newCollarNumber = $user['collarNumber'];
+    $newName = $user['name'];
+}
 
     // Get new rank and unit from POST
     $newRank = isset($_POST['rank']) ? mysqli_real_escape_string($conn, $_POST['rank']) : $user['rank'];
@@ -217,9 +209,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $canEdit) {
         $stmt->execute();
         $stmt->close();
     }
-} 
+}
 $conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -390,15 +383,19 @@ $conn->close();
             <!-- Name -->
             <p>
                 <strong>Name:</strong> 
-                <span class="display-mode"><?php echo $user['name']; ?></span>
-                <input type="text" class="edit-mode" name="name" id="name" value="<?php echo $user['name']; ?>" style="display:none;">
+                <span class="display-mode" style="display: none;"><?php echo $user['name']; ?></span><?php if ($isChiefInspectorOrHigher) { ?><input type="text" class="edit-mode" name="name" id="name" value="<?php echo $user['name']; ?>" style="display: none;"><?php } else { ?><span class="edit-mode"><?php echo $user['name']; ?></span><?php } ?>
+                
+
+
             </p>
             <p><strong>Character ID:</strong> <?php echo $user['characterId']; ?></p>
             <!-- Collar Number -->
             <p>
                 <strong>Collar Number:</strong> 
-                <span class="display-mode"><?php echo $user['collarNumber']; ?></span>
-                <input type="text" class="edit-mode" name="collarNumber" id="collarNumber" value="<?php echo $user['collarNumber']; ?>" style="display:none;">
+                <span class="display-mode" style="display: none;"><?php echo $user['collarNumber']; ?></span><?php if ($isChiefInspectorOrHigher) { ?><input type="text" class="edit-mode" name="collarNumber" id="collarNumber" value="<?php echo $user['collarNumber']; ?>" style="display: none;"><?php } else { ?><span class="edit-mode"><?php echo $user['collarNumber']; ?></span><?php } ?>
+                
+
+
             </p>
             <!-- Rank -->
             <p>
