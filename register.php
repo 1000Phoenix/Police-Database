@@ -66,6 +66,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param('ssssss', $rank, $collarNumber, $name, $characterId, $hashedPassword, $unit);
 
     if ($stmt->execute()) {
+    // Insert default training data for the new user
+    $sql_trainings = "INSERT INTO trainings (
+        characterId, 
+        sub_divisions_npas, 
+        sub_divisions_dsu, 
+        sub_divisions_mpo, 
+        driver_trainings_driving, 
+        driver_trainings_tacad, 
+        use_of_force_trainings_psu, 
+        use_of_force_trainings_firearms, 
+        additional_trainings_forensics, 
+        additional_trainings_fim, 
+        additional_trainings_training_officer, 
+        additional_trainings_medical
+    ) VALUES (
+        ?, 
+        'No', 
+        'No', 
+        'No', 
+        'Standard', 
+        'No', 
+        'Level 4',
+        'OST', 
+        'No', 
+        'No', 
+        'No', 
+        'No'
+    )";
+    $stmt_trainings = $conn->prepare($sql_trainings);
+    $stmt_trainings->bind_param('s', $characterId);
+    
+    if (!$stmt_trainings->execute()) {
+        echo 'Error populating training data.';
+        exit();
+    }
+
         // Get the last inserted user's ID
         $registered_characterId = $characterId;
 
