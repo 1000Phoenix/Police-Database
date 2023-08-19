@@ -67,7 +67,9 @@ $sql = "CREATE TABLE IF NOT EXISTS  `training_logs` (
   `changed_training` varchar(255) NOT NULL,
   `previous_training_value` varchar(255) NOT NULL,
   `new_training_value` varchar(255) NOT NULL,
-  `change_date` timestamp NOT NULL DEFAULT current_timestamp()
+  `change_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `whitelisted` enum('No','Yes') NOT NULL DEFAULT 'No'
+  `discord_whitelisted` enum('No','Yes') NOT NULL DEFAULT 'No'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
 if ($conn->query($sql) === TRUE) {

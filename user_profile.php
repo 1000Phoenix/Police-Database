@@ -208,7 +208,7 @@ if ($_POST['name'] !== $user['name'] || $_POST['collarNumber'] !== $user['collar
 
     // Log the changes
     foreach ($training_log_values as $log_value) {
-        $sql_log = "INSERT INTO training_logs (admin_characterId, admin_name, admin_rank, admin_collarNumber, admin_unit, user_characterId, user_name, user_rank, user_collarNumber, user_unit, changed_training, previous_training_value, new_training_value, change_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        $sql_log = "INSERT INTO training_logs (admin_characterId, admin_name, admin_rank, admin_collarNumber, admin_unit, user_characterId, user_name, user_rank, user_collarNumber, user_unit, changed_training, previous_training_value, new_training_value, change_date, whitelisted, discord_whitelisted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'No', 'No')";
         $stmt_log = $conn->prepare($sql_log);
 
         if ($stmt_log) {
