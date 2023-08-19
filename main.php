@@ -94,8 +94,7 @@ $isAccessibleRank = in_array($_SESSION['rank'], $accessibleRanks);
             border-radius: 5px;
             cursor: pointer;
         }
-        .register-button {
-            display: <?php echo $isAccessibleRank ? 'inline-block' : 'none'; ?>;
+        .button {
             padding: 10px 20px;
             background-color: #555; /* dark grey */
             color: #fff; /* White */
@@ -145,7 +144,9 @@ $isAccessibleRank = in_array($_SESSION['rank'], $accessibleRanks);
 <body>
     <h1><?php echo $welcomeMessage; ?></h1>
     <?php if ($isAccessibleRank) { ?>
-        <button class="register-button" onclick="location.href='register.php';">Register New Officer</button>
+        <button class="button" onclick="location.href='register.php';">Register New Officer</button>
+        <button class="button" onclick="location.href='whitelist.php';">Whitelisting Requests</button>
+        <button class="button" onclick="location.href='audit.php';">Audit Log</button>
     <?php } ?>
     <h2>Officers:</h2>
     <table>

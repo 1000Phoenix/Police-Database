@@ -195,7 +195,6 @@ function collarNumberExists($collarNumber)
             cursor: pointer;
         }
         .back-button {
-            display: <?php echo $isAccessibleRank ? 'inline-block' : 'none'; ?>;
             padding: 10px 20px;
             background-color: #555; /* dark grey */
             color: #fff; /* White */
@@ -242,6 +241,7 @@ function collarNumberExists($collarNumber)
 <body>
     <div class="registration-form">
         <h2>Register a New User</h2>
+        <button class="back-button" onclick="location.href='main.php';">Back to Main</button>
         <form action="register.php" method="post">
             <input type="text" name="characterId" placeholder="Character ID" required />
             <input type="text" name="name" placeholder="Name" required />
@@ -276,7 +276,6 @@ function collarNumberExists($collarNumber)
             <input type="password" name="password" placeholder="Password" required />
             <input type="submit" value="Register" />
         </form>
-        <button class="back-button"onclick="window.location.href='main.php';">Back to Main</button>
     </div>
 </body>
 </html>
