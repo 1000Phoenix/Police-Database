@@ -17,11 +17,25 @@ while ($row = $result_in_game->fetch_assoc()) {
 while ($row = $result_discord->fetch_assoc()) {
     $discord_logs[] = $row;
 }
+// Fetch data for the in-game and Discord whitelisting tables from the training_logs table where whitelisted is "Yes"
+$sql_in_game_yes = "SELECT * FROM training_logs WHERE whitelisted = 'Yes' ORDER BY change_date ASC";
+$result_in_game_yes = $conn->query($sql_in_game_yes);
+$in_game_logs_yes = [];
+while ($row = $result_in_game_yes->fetch_assoc()) {
+    $in_game_logs_yes[] = $row;
+}
+
+// Fetch data for the in-game and Discord whitelisting tables from the training_logs table where discord_whitelisted is "Yes"
+$sql_discord_yes = "SELECT * FROM training_logs WHERE discord_whitelisted = 'Yes' ORDER BY change_date ASC";
+$result_discord_yes = $conn->query($sql_discord_yes);
+$discord_logs_yes = [];
+while ($row = $result_discord_yes->fetch_assoc()) {
+    $discord_logs_yes[] = $row;
+}
+
 
 // Close the database connection
 $conn->close();
-
-
 
 function getDetails($log) {
     // Logic for sub_divisions_npas
@@ -190,10 +204,23 @@ foreach ($in_game_logs as &$log) {
 foreach ($discord_logs as &$log) {
     $log['details'] = getDetails($log);
 }
+foreach ($in_game_logs_yes as &$log) {
+    $log['details'] = getDetails($log);
+}
+
+foreach ($discord_logs_yes as &$log) {
+    $log['details'] = getDetails($log);
+}
 
 if (isset($_POST['submit_whitelisting'])) {
     // Connect to the database
     $conn = new mysqli($servername, $username, $password, $dbname);
+// Before processing the POST data, set all `whitelisted` and `discord_whitelisted` values to "No"
+$sql_reset_whitelisted = "UPDATE training_logs SET whitelisted='No'";
+$conn->query($sql_reset_whitelisted);
+$sql_reset_discord_whitelisted = "UPDATE training_logs SET discord_whitelisted='No'";
+$conn->query($sql_reset_discord_whitelisted);
+
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
@@ -250,64 +277,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["submit_whitelisting"])
 <!DOCTYPE html>
 <html>
 <head>
-<style>
-        body {
-            background-color: #333; /* dark grey */
-            color: #fff; /* white */
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        table {
-            margin: 20px auto;
-            border-collapse: collapse;
-            width: 90%;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #fff;
-        }
-        th {
-            background-color: #073763; /* dark blue */
-        }
-        .pagination {
-            display: inline-block;
-        }
-        .pagination a {
-            color: white;
-            padding: 8px 12px;
-            text-decoration: none;
-            transition: background-color .3s;
-        }
-        .pagination a.active {
-            background-color: #073763;
-            color: white;
-        }
-        .pagination a:hover:not(.active) {
-            background-color: #ddd;
-            color: black;
-        }
-        .button {
-            padding: 10px 20px;
-            background-color: #555; /* dark grey */
-            color: #fff; /* White */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="stylesheet.css">
     <title>Whitelisting Management</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">  <!-- Placeholder for potential external stylesheet -->
 </head>
+<script>
+function toggleWhitelisting() {
+    // Get the current tables and the new tables (which will be added next)
+    var inGameTable = document.getElementById("inGameTable");
+    var discordTable = document.getElementById("discordTable");
+    var inGameTableCompleted = document.getElementById("inGameTableCompleted");
+    var discordTableCompleted = document.getElementById("discordTableCompleted");
+
+    // Check if the current tables are visible or not
+    if (inGameTable.style.display === "none") {
+        inGameTable.style.display = "table";
+        discordTable.style.display = "table";
+        inGameTableCompleted.style.display = "none";
+        discordTableCompleted.style.display = "none";
+    } else {
+        inGameTable.style.display = "none";
+        discordTable.style.display = "none";
+        inGameTableCompleted.style.display = "table";
+        discordTableCompleted.style.display = "table";
+    }
+}
+</script>
+
 <body>
 
 <h2>Whitelisting Management</h2>
 <button class="button" onclick="location.href='main.php';">Back to Main</button>
-<button class="button" onclick="">Show Completed</button>
+<button class="button" onclick="toggleWhitelisting()">Show Completed</button>
 <form method='post' action=''>
-
+<h3><input class='button' type='submit' name='submit_whitelisting' value='Update Whitelisting'></h3>
 <!-- In-Game Whitelisting Table -->
-<table style="width: 48%; float: left;">
+<table id="inGameTable" style="width: 48%; float: left;">
     <caption>In-Game Whitelisting</caption>
     <tr>
         <th>Date</th>
@@ -330,7 +334,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["submit_whitelisting"])
 </table>
 
 <!-- Discord Whitelisting Table -->
-<table style="width: 48%; float: right;">
+<table id="discordTable" style="width: 48%; float: right;">
     <caption>Discord Whitelisting</caption>
     <tr>
         <th>Date</th>
@@ -352,8 +356,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["submit_whitelisting"])
     ?>
 </table>
 
+<!-- In-Game Whitelisting Completed Table -->
+<table id="inGameTableCompleted" style="width: 48%; float: left; display: none;">
+    <caption>In-Game Whitelisting (Completed)</caption>
+    <tr>
+        <th>Date</th>
+        <th>Updating Officer</th>
+        <th>Officer</th>
+        <th>Details</th>
+        <th>Whitelisted</th>
+    </tr>
+    <?php
+    foreach ($in_game_logs_yes as $log) {
+        echo "<tr>";
+        echo "<td>" . $log['change_date'] . "</td>";
+        echo "<td>" . $log['admin_name'] . "</td>";
+        echo "<td>" . $log['user_name'] . "</td>";
+        echo "<td>" . $log['details'] . "</td>";
+        echo "<td><input type='checkbox' name='whitelisted_" . $log['id'] . "' " . ($log['whitelisted'] == 'Yes' ? "checked" : "") . "></td>";
+        echo "</tr>";
+    }
+    ?>
+</table>
 
-<input type='submit' name='submit_whitelisting' value='Update Whitelisting'>
+<!-- Discord Whitelisting Completed Table -->
+<table id="discordTableCompleted" style="width: 48%; float: right; display: none;">
+    <caption>Discord Whitelisting (Completed)</caption>
+    <tr>
+        <th>Date</th>
+        <th>Updating Officer</th>
+        <th>Officer</th>
+        <th>Details</th>
+        <th>Discord Whitelisted</th>
+    </tr>
+    <?php
+    foreach ($discord_logs_yes as $log) {
+        echo "<tr>";
+        echo "<td>" . $log['change_date'] . "</td>";
+        echo "<td>" . $log['admin_name'] . "</td>";
+        echo "<td>" . $log['user_name'] . "</td>";
+        echo "<td>" . $log['details'] . "</td>";
+        echo "<td><input type='checkbox' name='discord_whitelisted_" . $log['id'] . "' " . ($log['discord_whitelisted'] == 'Yes' ? "checked" : "") . "></td>";
+        echo "</tr>";
+    }
+    ?>
+</table>
 </form>
 </body>
 </html>

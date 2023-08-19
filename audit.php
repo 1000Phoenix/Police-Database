@@ -106,58 +106,13 @@ $conn->close();
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="stylesheet.css">
     <title>Audit Log</title>
-    <style>
-        body {
-            background-color: #333; /* dark grey */
-            color: #fff; /* white */
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        table {
-            margin: 20px auto;
-            border-collapse: collapse;
-            width: 90%;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #fff;
-        }
-        th {
-            background-color: #073763; /* dark blue */
-        }
-        .pagination {
-            display: inline-block;
-        }
-        .pagination a {
-            color: white;
-            padding: 8px 12px;
-            text-decoration: none;
-            transition: background-color .3s;
-        }
-        .pagination a.active {
-            background-color: #073763;
-            color: white;
-        }
-        .pagination a:hover:not(.active) {
-            background-color: #ddd;
-            color: black;
-        }
-        .back-to-main {
-            padding: 10px 20px;
-            background-color: #555; /* dark grey */
-            color: #fff; /* White */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px;
-        }
-    </style>
 </head>
 <body>
 
 <h2>Audit Log</h2>
-<button class="back-to-main" onclick="location.href='main.php';">Back to Main</button>
+<button class="button" onclick="location.href='main.php';">Back to Main</button>
 <table>
     <tr>
         <th>Date</th>

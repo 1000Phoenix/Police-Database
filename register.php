@@ -155,55 +155,8 @@ function collarNumberExists($collarNumber)
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="stylesheet.css">    
     <title>Registration</title>
-    <style>
-        body {
-            background-color: #333; /* dark grey */
-            color: #fff; /* white */
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        .registration-form {
-            margin: 50px auto;
-            max-width: 400px;
-            padding: 20px;
-            border: 1px solid #fff;
-            border-radius: 5px;
-        }
-        .registration-form input[type="text"],
-        .registration-form input[type="password"],
-        .registration-form select {
-            display: block;
-            width: 100%;
-            max-width: 300px;
-            margin: 10px auto;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        .registration-form input[type="submit"] {
-            display: block;
-            width: 50%;
-            max-width: 300px;
-            margin: 20px auto;
-            padding: 10px;
-            background-color: #555; /* dark grey */
-            color: #fff; /* white */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .back-button {
-            padding: 10px 20px;
-            background-color: #555; /* dark grey */
-            color: #fff; /* White */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px;
-        }
-    </style>
     <script>
     function handleRankChange() {
         var rankSelect = document.getElementById('rank');
@@ -241,7 +194,7 @@ function collarNumberExists($collarNumber)
 <body>
     <div class="registration-form">
         <h2>Register a New User</h2>
-        <button class="back-button" onclick="location.href='main.php';">Back to Main</button>
+        <button class="button" onclick="location.href='main.php';">Back to Main</button>
         <form action="register.php" method="post">
             <input type="text" name="characterId" placeholder="Character ID" required />
             <input type="text" name="name" placeholder="Name" required />

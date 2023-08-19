@@ -1,0 +1,127 @@
+body {
+    background-color: #333; /* dark grey */
+    color: #fff; /* white */
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 80%;
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #fff;
+}
+th {
+    background-color: #073763;
+}
+.button {
+    padding: 10px 20px;
+    background-color: #555;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+}
+.rank-epaulette {
+    max-width: 30px !important;
+    max-height: 30px !important;
+    width: auto;
+    height: auto;
+}
+.rank-epaulette-cell {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    text-align: center;
+}
+a {
+    text-decoration: none;
+    color: inherit;
+}
+td {
+    color: #fff;
+}
+tr:nth-child(even) {
+    background-color: #444; /* darker grey */
+}
+tr[data-rank="Chief Constable"] td:nth-child(4){
+    background-color: #B45F06;
+}
+tr[data-rank="Deputy Chief Constable"] td:nth-child(4){
+    background-color: #B45F06;
+}
+tr[data-rank="Assistant Chief Constable"] td:nth-child(4){
+    background-color: #B45F06;
+}
+tr[data-rank="Chief Superintendent"] td:nth-child(4) {
+    background-color: #B45F06; /* Gold for Chief Superintendent+ */
+}
+tr[data-rank="Superintendent"] td:nth-child(4) {
+    background-color: #CC0000; /* Red for Superintendent */
+}
+tr[data-rank="Chief Inspector"] td:nth-child(4) {
+    background-color: #741B47; /* Dark Magenta for Chief Inspector */
+}
+tr[data-rank="Inspector"] td:nth-child(4) {
+    background-color: #C27BA0; /* Light Magenta for Inspector */
+}
+tr[data-rank="Sergeant"] td:nth-child(4) {
+    background-color: #134F5C; /* Dark Cyan for Sergeant */
+}
+tr[data-rank="Constable"] td:nth-child(4) {
+    background-color: #85200C; /* Dark Red Berry for Constable */
+}
+tr[data-rank="Probationary Constable"] td:nth-child(4) {
+    background-color: #274E13; /* Dark Green for Probie */
+}
+.registration-form {
+    margin: 50px auto;
+    max-width: 400px;
+    padding: 20px;
+    border: 1px solid #fff;
+    border-radius: 5px;
+}
+.registration-form input[type="text"],
+.registration-form input[type="password"],
+.registration-form select {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px auto;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+.registration-form input[type="submit"] {
+    display: block;
+    width: 50%;
+    max-width: 300px;
+    margin: 20px auto;
+    padding: 10px;
+    background-color: #555; /* dark grey */
+    color: #fff; /* white */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.pagination {
+    display: inline-block;
+}
+.pagination a {
+    color: white;
+    padding: 8px 12px;
+    text-decoration: none;
+    transition: background-color .3s;
+}
+.pagination a.active {
+    background-color: #073763;
+    color: white;
+}
+.pagination a:hover:not(.active) {
+    background-color: #ddd;
+    color: black;
+}

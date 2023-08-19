@@ -45,101 +45,8 @@ $isAccessibleRank = in_array($_SESSION['rank'], $accessibleRanks);
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="stylesheet.css">
     <title>Main Page</title>
-    <style>
-        body {
-            background-color: #333; /* dark grey */
-            color: #fff; /* white */
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        table {
-            margin: 20px auto;
-            border-collapse: collapse;
-            width: 80%;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #fff;
-        }
-        th {
-            background-color: #073763; /* dark grey */
-        }
-        tr:first-child {
-            background-color: #333; /* darkest grey */
-        }
-        .rank-epaulette {
-            max-width: 30px !important;
-            max-height: 30px !important;
-            width: auto;
-            height: auto;
-        }
-        /* Additional style for the table cell containing the image */
-        .rank-epaulette-cell {
-            width: 30px;
-            height: 30px;
-            padding: 0;
-            text-align: center;
-        }
-        a {
-            text-decoration: none; /* Remove underline from hyperlinks */
-            color: inherit; /* Inherit color from parent element (in this case, the table cells) */
-        }
-        .logout-button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #555; /* dark grey */
-            color: #fff; /* white */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .button {
-            padding: 10px 20px;
-            background-color: #555; /* dark grey */
-            color: #fff; /* White */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px;
-        }
-        tr:nth-child(even) {
-            background-color: #444; /* darker grey */
-        }
-        td {
-            color: #fff; /* white */
-        }
-        tr[data-rank="Chief Constable"] td:nth-child(4){
-            background-color: #B45F06;
-        }
-        tr[data-rank="Deputy Chief Constable"] td:nth-child(4){
-            background-color: #B45F06;
-        }
-        tr[data-rank="Assistant Chief Constable"] td:nth-child(4){
-            background-color: #B45F06;
-        }
-        tr[data-rank="Chief Superintendent"] td:nth-child(4) {
-            background-color: #B45F06; /* Gold for Chief Superintendent+ */
-        }
-        tr[data-rank="Superintendent"] td:nth-child(4) {
-            background-color: #CC0000; /* Red for Superintendent */
-        }
-        tr[data-rank="Chief Inspector"] td:nth-child(4) {
-            background-color: #741B47; /* Dark Magenta for Chief Inspector */
-        }
-        tr[data-rank="Inspector"] td:nth-child(4) {
-            background-color: #C27BA0; /* Light Magenta for Inspector */
-        }
-        tr[data-rank="Sergeant"] td:nth-child(4) {
-            background-color: #134F5C; /* Dark Cyan for Sergeant */
-        }
-        tr[data-rank="Constable"] td:nth-child(4) {
-            background-color: #85200C; /* Dark Red Berry for Constable */
-        }
-        tr[data-rank="Probationary Constable"] td:nth-child(4) {
-            background-color: #274E13; /* Dark Green for Probie */
-        }
-    </style>
 </head>
 <body>
     <h1><?php echo $welcomeMessage; ?></h1>
@@ -243,6 +150,6 @@ $isAccessibleRank = in_array($_SESSION['rank'], $accessibleRanks);
         }
         ?>
     </table>
-    <button class="logout-button" onclick="location.href='logout.php';">Logout</button>
+    <button class="button" onclick="location.href='logout.php';">Logout</button>
 </body>
 </html>
