@@ -54,7 +54,40 @@ if (isset($_GET['characterId'])) {
     $characterId = $_GET['characterId'];
     $user = getUserData($conn, $characterId);
 
-    
+    // Set page size and calculate offsets
+    $page_size = 5;
+    $left_page = isset($_GET['left_page']) ? intval($_GET['left_page']) : 1;
+    $right_page = isset($_GET['right_page']) ? intval($_GET['right_page']) : 1;
+    $left_offset = ($left_page - 1) * $page_size;
+    $right_offset = ($right_page - 1) * $page_size;
+
+    // Fetch changes made BY the user
+    $sql_left = "SELECT * FROM (
+        (SELECT 'user_logs' as source_table, admin_charid, change_date, changed_value, previous_value, new_value FROM user_logs WHERE admin_charid = ?)
+        UNION
+        (SELECT 'training_logs' as source_table, admin_characterId, change_date, changed_training, previous_training_value, new_training_value FROM training_logs WHERE admin_characterId = ?)
+        UNION
+        (SELECT 'registrations' as source_table, registered_by_characterId as admin_charid, registration_date as change_date, registered_name as changed_value, NULL as previous_value, NULL as new_value FROM registrations WHERE registered_by_characterId = ?)
+    ) AS changes ORDER BY change_date DESC LIMIT 5 OFFSET ?";
+    $stmt_left = $conn->prepare($sql_left);
+    $stmt_left->bind_param('sssi', $characterId, $characterId, $characterId, $left_offset);
+    $stmt_left->execute();
+    $results_left = $stmt_left->get_result();
+    $changes_by_user = $results_left->fetch_all(MYSQLI_ASSOC);
+
+    // Fetch changes made TO the user
+    $sql_right = "SELECT * FROM (
+        (SELECT 'user_logs' as source_table, user_characterId, change_date, changed_value, previous_value, new_value FROM user_logs WHERE user_characterId = ?)
+        UNION
+        (SELECT 'training_logs' as source_table, user_characterId, change_date, changed_training, previous_training_value, new_training_value FROM training_logs WHERE user_characterId = ?)
+        UNION
+        (SELECT 'registrations' as source_table, registered_characterId as user_characterId, registration_date as change_date, NULL as changed_value, NULL as previous_value, NULL as new_value FROM registrations WHERE registered_characterId = ?)
+    ) AS changes ORDER BY change_date DESC LIMIT 5 OFFSET ?";
+    $stmt_right = $conn->prepare($sql_right);
+    $stmt_right->bind_param('sssi', $characterId, $characterId, $characterId, $right_offset);
+    $stmt_right->execute();
+    $results_right = $stmt_right->get_result();
+    $changes_to_user = $results_right->fetch_all(MYSQLI_ASSOC);
 
 $rankIndex = array_search($_SESSION['rank'], $rankOrder);
 $chiefInspectorIndex = array_search('Chief Inspector', $rankOrder);
@@ -388,7 +421,20 @@ $conn->close();
             box-sizing: border-box;
             color: #fff
         }
-    </style>
+        .audit-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .audit-box {
+            flex: 1;
+            border: 5px solid #555;
+            box-sizing: border-box;
+            width: 48%; 
+            background-color: #555;
+            margin-left: 5%;
+            margin-right: 5%;
+        }
+</style>
 </head>
 <body>
     <div class="profile">
@@ -403,24 +449,18 @@ $conn->close();
         </div>
 
         <form id="editForm" method="post">
-            <!-- Name -->
+        <!-- Name -->
             <p>
                 <strong>Name:</strong> 
                 <span class="display-mode" style="display: none;"><?php echo $user['name']; ?></span><?php if ($isChiefInspectorOrHigher) { ?><input type="text" class="edit-mode" name="name" id="name" value="<?php echo $user['name']; ?>" style="display: none;"><?php } else { ?><span class="edit-mode"><?php echo $user['name']; ?></span><?php } ?>
-                
-
-
             </p>
             <p><strong>Character ID:</strong> <?php echo $user['characterId']; ?></p>
-            <!-- Collar Number -->
+        <!-- Collar Number -->
             <p>
                 <strong>Collar Number:</strong> 
                 <span class="display-mode" style="display: none;"><?php echo $user['collarNumber']; ?></span><?php if ($isChiefInspectorOrHigher) { ?><input type="text" class="edit-mode" name="collarNumber" id="collarNumber" value="<?php echo $user['collarNumber']; ?>" style="display: none;"><?php } else { ?><span class="edit-mode"><?php echo $user['collarNumber']; ?></span><?php } ?>
-                
-
-
             </p>
-            <!-- Rank -->
+        <!-- Rank -->
             <p>
                 <strong>Rank:</strong> 
                 <span class="display-mode"><?php echo $user['rank']; ?></span>
@@ -431,8 +471,7 @@ $conn->close();
                     <?php endforeach; ?>
                 </select>
             </p>
-
-            <!-- Unit -->
+        <!-- Unit -->
             <p>
                 <strong>Unit:</strong> 
                 <span class="display-mode"><?php echo $user['unit']; ?></span>
@@ -557,7 +596,65 @@ $conn->close();
                 <!-- Save Button -->
                 <input id="saveButton" type="submit" value="Save" style="display:none;">
             </form>
+            </div>
     </div>
+    <div class="audit-container" style="display: flex; justify-content: space-between;">
+    <?php if (count($changes_by_user) > 0): ?>
+    <div class="audit-box">
+    <h3>Audit Log - Changes Made</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #333; color: #fff;">
+            <th>Table</th>
+            <th>Date</th>
+            <th>Changed</th>
+            <th>Old</th>
+            <th>New</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    <?php foreach ($changes_by_user as $change): ?>
+        <tr>
+            <td><?= $change['source_table'] ?></td>
+            <td><?= $change['change_date'] ?></td>
+            <td><?= $change['changed_value'] ?></td>
+            <td><?= $change['previous_value'] ?></td>
+            <td><?= $change['new_value'] ?></td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+    </table>
+    </div>
+    <?php endif; ?>
+
+    <div class="audit-box">
+    <h3>Audit Log - Changes Received</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #333; color: #fff;">
+            <th>Table</th>
+            <th>Date</th>
+            <th>Changed</th>
+            <th>Old</th>
+            <th>New</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    <?php foreach ($changes_to_user as $change): ?>
+        <tr>
+            <td><?= $change['source_table'] ?></td>
+            <td><?= $change['change_date'] ?></td>
+            <td><?= $change['changed_value'] ?></td>
+            <td><?= $change['previous_value'] ?></td>
+            <td><?= $change['new_value'] ?></td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+    </table>
+    </div>
+</div>
 </body>
 
 <script>
@@ -602,5 +699,4 @@ $conn->close();
     }
 }
 </script>
-</body>
 </html>
