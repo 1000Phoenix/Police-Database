@@ -67,7 +67,9 @@ $sql = "CREATE TABLE IF NOT EXISTS  `training_logs` (
   `changed_training` varchar(255) NOT NULL,
   `previous_training_value` varchar(255) NOT NULL,
   `new_training_value` varchar(255) NOT NULL,
-  `change_date` timestamp NOT NULL DEFAULT current_timestamp()
+  `change_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `whitelisted` enum('No','Yes') NOT NULL DEFAULT 'No'
+  `discord_whitelisted` enum('No','Yes') NOT NULL DEFAULT 'No'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
 if ($conn->query($sql) === TRUE) {
@@ -89,6 +91,30 @@ if ($conn->query($sql) === TRUE) {
     echo "Table users created successfully";
 } else {
     echo "Error creating table users: " . $conn->error . "<br>";
+}
+
+$sql = "CREATE TABLE IF NOT EXISTS `user_logs` (
+    `id` int(11) NOT NULL,
+    `admin_charid` varchar(255) NOT NULL,
+    `admin_name` varchar(255) NOT NULL,
+    `admin_rank` enum('Chief Constable','Deputy Chief Constable','Assistant Chief Constable','Chief Superintendent','Superintendent','Chief Inspector','Inspector','Sergeant','Constable','Probationary Constable') NOT NULL,
+    `admin_collarNumber` char(4) NOT NULL,
+    `admin_unit` varchar(255) NOT NULL,
+    `user_characterId` varchar(255) NOT NULL,
+    `user_name` varchar(255) NOT NULL,
+    `user_rank` enum('Chief Constable','Deputy Chief Constable','Assistant Chief Constable','Chief Superintendent','Superintendent','Chief Inspector','Inspector','Sergeant','Constable','Probationary Constable') NOT NULL,
+    `user_collarNumber` char(4) NOT NULL,
+    `user_unit` varchar(255) NOT NULL,
+    `changed_value` varchar(255) NOT NULL,
+    `previous_value` varchar(255) NOT NULL,
+    `new_value` varchar(255) NOT NULL,
+    `change_date` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+  
+if ($conn->query($sql) === TRUE) {
+    echo "User logs table created successfully";
+} else {
+    echo "Error creating user logs table: " . $conn->error;
 }
 
 $conn->close();
