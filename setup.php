@@ -11,7 +11,7 @@ if ($conn->query($sql) === TRUE) {
 $conn->select_db($dbname);
 
 $sql = "CREATE TABLE IF NOT EXISTS  `registrations` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `registered_by_characterId` varchar(100) NOT NULL,
   `registered_by_name` varchar(255) NOT NULL,
   `registered_by_rank` enum('Chief Constable','Deputy Chief Constable','Assistant Chief Constable','Chief Superintendent','Superintendent','Chief Inspector','Inspector','Sergeant','Constable','Probationary Constable') NOT NULL,
@@ -22,7 +22,8 @@ $sql = "CREATE TABLE IF NOT EXISTS  `registrations` (
   `registered_rank` enum('Chief Constable','Deputy Chief Constable','Assistant Chief Constable','Chief Superintendent','Superintendent','Chief Inspector','Inspector','Sergeant','Constable','Probationary Constable') NOT NULL,
   `registered_collarNumber` char(4) NOT NULL,
   `registered_unit` varchar(255) NOT NULL,
-  `registration_date` timestamp NOT NULL DEFAULT current_timestamp()
+  `registration_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
 if ($conn->query($sql) === TRUE) {
@@ -43,7 +44,8 @@ $sql = "CREATE TABLE IF NOT EXISTS  `trainings` (
   `additional_trainings_forensics` enum('Yes','No') NOT NULL DEFAULT 'No',
   `additional_trainings_fim` enum('Yes','No') NOT NULL DEFAULT 'No',
   `additional_trainings_training_officer` enum('Yes','No') NOT NULL DEFAULT 'No',
-  `additional_trainings_medical` enum('No','Basic','Advanced') NOT NULL DEFAULT 'No'
+  `additional_trainings_medical` enum('No','Basic','Advanced') NOT NULL DEFAULT 'No',
+  PRIMARY KEY (`characterId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
 if ($conn->query($sql) === TRUE) {
@@ -53,7 +55,7 @@ if ($conn->query($sql) === TRUE) {
 }
 
 $sql = "CREATE TABLE IF NOT EXISTS  `training_logs` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `admin_characterId` varchar(255) NOT NULL,
   `admin_name` varchar(255) NOT NULL,
   `admin_rank` varchar(255) NOT NULL,
@@ -69,7 +71,8 @@ $sql = "CREATE TABLE IF NOT EXISTS  `training_logs` (
   `new_training_value` varchar(255) NOT NULL,
   `change_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `whitelisted` enum('No','Yes') NOT NULL DEFAULT 'No',
-  `discord_whitelisted` enum('No','Yes') NOT NULL DEFAULT 'No'
+  `discord_whitelisted` enum('No','Yes') NOT NULL DEFAULT 'No',
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
 if ($conn->query($sql) === TRUE) {
@@ -84,7 +87,8 @@ $sql = "CREATE TABLE IF NOT EXISTS  `users` (
   `collarNumber` varchar(4) NOT NULL,
   `name` varchar(255) NOT NULL,
   `unit` enum('Police Command','Frontline','Response','Recruitment & Development','Standards','Tactical Operations','Roads Policing Unit','Firearms','CID','Policing Operations','NPAS','DSU','MPO','PSU','Archive') NOT NULL DEFAULT 'Recruitment & Development',
-  `password` varchar(255) NOT NULL
+  `password` varchar(255) NOT NULL,
+  PRIMARY KEY (`characterId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
 if ($conn->query($sql) === TRUE) {
@@ -94,7 +98,7 @@ if ($conn->query($sql) === TRUE) {
 }
 
 $sql = "CREATE TABLE IF NOT EXISTS `user_logs` (
-    `id` int(11) NOT NULL,
+    `id` int(11) NOT NULL AUTO_INCREMENT,
     `admin_charid` varchar(255) NOT NULL,
     `admin_name` varchar(255) NOT NULL,
     `admin_rank` enum('Chief Constable','Deputy Chief Constable','Assistant Chief Constable','Chief Superintendent','Superintendent','Chief Inspector','Inspector','Sergeant','Constable','Probationary Constable') NOT NULL,
@@ -108,7 +112,8 @@ $sql = "CREATE TABLE IF NOT EXISTS `user_logs` (
     `changed_value` varchar(255) NOT NULL,
     `previous_value` varchar(255) NOT NULL,
     `new_value` varchar(255) NOT NULL,
-    `change_date` timestamp NOT NULL DEFAULT current_timestamp()
+    `change_date` timestamp NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
   
 if ($conn->query($sql) === TRUE) {
