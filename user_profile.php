@@ -54,7 +54,40 @@ if (isset($_GET['characterId'])) {
     $characterId = $_GET['characterId'];
     $user = getUserData($conn, $characterId);
 
-    
+    // Set page size and calculate offsets
+    $page_size = 5;
+    $left_page = isset($_GET['left_page']) ? intval($_GET['left_page']) : 1;
+    $right_page = isset($_GET['right_page']) ? intval($_GET['right_page']) : 1;
+    $left_offset = ($left_page - 1) * $page_size;
+    $right_offset = ($right_page - 1) * $page_size;
+
+    // Fetch changes made BY the user
+    $sql_left = "SELECT * FROM (
+        (SELECT 'user_logs' as source_table, admin_charid, change_date, changed_value, previous_value, new_value FROM user_logs WHERE admin_charid = ?)
+        UNION
+        (SELECT 'training_logs' as source_table, admin_characterId, change_date, changed_training, previous_training_value, new_training_value FROM training_logs WHERE admin_characterId = ?)
+        UNION
+        (SELECT 'registrations' as source_table, registered_by_characterId as admin_charid, registration_date as change_date, registered_name as changed_value, NULL as previous_value, NULL as new_value FROM registrations WHERE registered_by_characterId = ?)
+    ) AS changes ORDER BY change_date DESC LIMIT 5 OFFSET ?";
+    $stmt_left = $conn->prepare($sql_left);
+    $stmt_left->bind_param('sssi', $characterId, $characterId, $characterId, $left_offset);
+    $stmt_left->execute();
+    $results_left = $stmt_left->get_result();
+    $changes_by_user = $results_left->fetch_all(MYSQLI_ASSOC);
+
+    // Fetch changes made TO the user
+    $sql_right = "SELECT * FROM (
+        (SELECT 'user_logs' as source_table, user_characterId, change_date, changed_value, previous_value, new_value FROM user_logs WHERE user_characterId = ?)
+        UNION
+        (SELECT 'training_logs' as source_table, user_characterId, change_date, changed_training, previous_training_value, new_training_value FROM training_logs WHERE user_characterId = ?)
+        UNION
+        (SELECT 'registrations' as source_table, registered_characterId as user_characterId, registration_date as change_date, NULL as changed_value, NULL as previous_value, NULL as new_value FROM registrations WHERE registered_characterId = ?)
+    ) AS changes ORDER BY change_date DESC LIMIT 5 OFFSET ?";
+    $stmt_right = $conn->prepare($sql_right);
+    $stmt_right->bind_param('sssi', $characterId, $characterId, $characterId, $right_offset);
+    $stmt_right->execute();
+    $results_right = $stmt_right->get_result();
+    $changes_to_user = $results_right->fetch_all(MYSQLI_ASSOC);
 
 $rankIndex = array_search($_SESSION['rank'], $rankOrder);
 $chiefInspectorIndex = array_search('Chief Inspector', $rankOrder);
@@ -101,7 +134,30 @@ if ($_POST['name'] !== $user['name'] || $_POST['collarNumber'] !== $user['collar
     // Get new rank and unit from POST
     $newRank = isset($_POST['rank']) ? mysqli_real_escape_string($conn, $_POST['rank']) : $user['rank'];
     $newUnit = isset($_POST['unit']) ? mysqli_real_escape_string($conn, $_POST['unit']) : $user['unit'];
-
+        // Check for changes and log them
+        $fields_to_check = ['name', 'collarNumber', 'rank', 'unit'];
+        foreach ($fields_to_check as $field) {
+            if ($_POST[$field] !== $user[$field]) {
+                $sql = "INSERT INTO user_logs (
+                    admin_charid, admin_name, admin_rank, admin_collarNumber, admin_unit,
+                    user_characterId, user_name, user_rank, user_collarNumber, user_unit,
+                    changed_value, previous_value, new_value, change_date
+                ) VALUES (
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?, NOW()
+                )";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param(
+                    'sssssssssssss',
+                    $_SESSION['characterId'], $_SESSION['name'], $_SESSION['rank'], $_SESSION['collarNumber'], $_SESSION['unit'],
+                    $characterId, $user['name'], $user['rank'], $user['collarNumber'], $user['unit'],
+                    $field, $user[$field], $_POST[$field]
+                );
+                $stmt->execute();
+            }
+        }
+    
     // Retrieve and sanitize values for trainings
     $training_cols = ['sub_divisions_npas', 'sub_divisions_dsu', 'sub_divisions_mpo', 'driver_trainings_driving', 'driver_trainings_tacad', 'use_of_force_trainings_psu', 'use_of_force_trainings_firearms', 'additional_trainings_forensics', 'additional_trainings_fim', 'additional_trainings_training_officer', 'additional_trainings_medical'];
     $training_values = [];
@@ -152,7 +208,7 @@ if ($_POST['name'] !== $user['name'] || $_POST['collarNumber'] !== $user['collar
 
     // Log the changes
     foreach ($training_log_values as $log_value) {
-        $sql_log = "INSERT INTO training_logs (admin_characterId, admin_name, admin_rank, admin_collarNumber, admin_unit, user_characterId, user_name, user_rank, user_collarNumber, user_unit, changed_training, previous_training_value, new_training_value, change_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        $sql_log = "INSERT INTO training_logs (admin_characterId, admin_name, admin_rank, admin_collarNumber, admin_unit, user_characterId, user_name, user_rank, user_collarNumber, user_unit, changed_training, previous_training_value, new_training_value, change_date, whitelisted, discord_whitelisted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'No', 'No')";
         $stmt_log = $conn->prepare($sql_log);
 
         if ($stmt_log) {
@@ -365,7 +421,20 @@ $conn->close();
             box-sizing: border-box;
             color: #fff
         }
-    </style>
+        .audit-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .audit-box {
+            flex: 1;
+            border: 5px solid #555;
+            box-sizing: border-box;
+            width: 48%; 
+            background-color: #555;
+            margin-left: 5%;
+            margin-right: 5%;
+        }
+</style>
 </head>
 <body>
     <div class="profile">
@@ -380,24 +449,18 @@ $conn->close();
         </div>
 
         <form id="editForm" method="post">
-            <!-- Name -->
+        <!-- Name -->
             <p>
                 <strong>Name:</strong> 
                 <span class="display-mode" style="display: none;"><?php echo $user['name']; ?></span><?php if ($isChiefInspectorOrHigher) { ?><input type="text" class="edit-mode" name="name" id="name" value="<?php echo $user['name']; ?>" style="display: none;"><?php } else { ?><span class="edit-mode"><?php echo $user['name']; ?></span><?php } ?>
-                
-
-
             </p>
             <p><strong>Character ID:</strong> <?php echo $user['characterId']; ?></p>
-            <!-- Collar Number -->
+        <!-- Collar Number -->
             <p>
                 <strong>Collar Number:</strong> 
                 <span class="display-mode" style="display: none;"><?php echo $user['collarNumber']; ?></span><?php if ($isChiefInspectorOrHigher) { ?><input type="text" class="edit-mode" name="collarNumber" id="collarNumber" value="<?php echo $user['collarNumber']; ?>" style="display: none;"><?php } else { ?><span class="edit-mode"><?php echo $user['collarNumber']; ?></span><?php } ?>
-                
-
-
             </p>
-            <!-- Rank -->
+        <!-- Rank -->
             <p>
                 <strong>Rank:</strong> 
                 <span class="display-mode"><?php echo $user['rank']; ?></span>
@@ -408,8 +471,7 @@ $conn->close();
                     <?php endforeach; ?>
                 </select>
             </p>
-
-            <!-- Unit -->
+        <!-- Unit -->
             <p>
                 <strong>Unit:</strong> 
                 <span class="display-mode"><?php echo $user['unit']; ?></span>
@@ -534,7 +596,65 @@ $conn->close();
                 <!-- Save Button -->
                 <input id="saveButton" type="submit" value="Save" style="display:none;">
             </form>
+            </div>
     </div>
+    <div class="audit-container" style="display: flex; justify-content: space-between;">
+    <?php if (count($changes_by_user) > 0): ?>
+    <div class="audit-box">
+    <h3>Audit Log - Changes Made</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #333; color: #fff;">
+            <th>Table</th>
+            <th>Date</th>
+            <th>Changed</th>
+            <th>Old</th>
+            <th>New</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    <?php foreach ($changes_by_user as $change): ?>
+        <tr>
+            <td><?= $change['source_table'] ?></td>
+            <td><?= $change['change_date'] ?></td>
+            <td><?= $change['changed_value'] ?></td>
+            <td><?= $change['previous_value'] ?></td>
+            <td><?= $change['new_value'] ?></td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+    </table>
+    </div>
+    <?php endif; ?>
+
+    <div class="audit-box">
+    <h3>Audit Log - Changes Received</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #333; color: #fff;">
+            <th>Table</th>
+            <th>Date</th>
+            <th>Changed</th>
+            <th>Old</th>
+            <th>New</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    <?php foreach ($changes_to_user as $change): ?>
+        <tr>
+            <td><?= $change['source_table'] ?></td>
+            <td><?= $change['change_date'] ?></td>
+            <td><?= $change['changed_value'] ?></td>
+            <td><?= $change['previous_value'] ?></td>
+            <td><?= $change['new_value'] ?></td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+    </table>
+    </div>
+</div>
 </body>
 
 <script>
@@ -579,5 +699,4 @@ $conn->close();
     }
 }
 </script>
-</body>
 </html>
