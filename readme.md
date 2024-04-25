@@ -1,5 +1,7 @@
 # RPUK Police Database
 
+## Please note, this is only a proof of concept and is far from complete.
+
 ### Setup
 
 To use, you need to edit config-example.php to contain your MYSQL database details.
